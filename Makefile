@@ -1,2 +1,2 @@
 all:
-	cc jameboy/*.c -o bin/jameboy
+	cc -ggdb jameboy/*.c -o bin/jameboy

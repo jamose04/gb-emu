@@ -14,3 +14,10 @@ bool init_machine(FILE *gbboot, FILE *rom)
 
     return true;
 }
+
+void machine_run()
+{
+    // at this point, pc should be set to zero and the boot rom is loaded
+    //cpu_execute();
+    //cpu_fetch();
+}

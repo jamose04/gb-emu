@@ -12,6 +12,6 @@ bool init_machine(FILE *gbboot, FILE *rom);
 /*
  * Fire up the cpu and begin execution.
  */
-void machine_start();
+void machine_run();
 
 #endif

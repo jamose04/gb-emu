@@ -8,6 +8,8 @@
  * All sm83 opcodes. There are a lot.
  */
 typedef enum Opcodes {
+    OP_UNIMP, // for unimplemented opcodes
+    OP_NOP,
     OP_LD_RR,
     OP_LD_RN,
     OP_LD_RHL, // load legister from mem
@@ -74,5 +76,7 @@ typedef enum Opcodes {
     OP_ADD_SP_nn,
     OP_ADD_HL_SP_nn,
 } opcode_t;
+
+opcode_t get_op();
 
 #endif

@@ -75,7 +75,7 @@ typedef enum Opcodes {
     OP_INC_RR,
     OP_DEC_RR,
     OP_ADD_SP_nn,
-    OP_ADD_HL_SP_nn,
+    OP_LD_HL_SP_nn,
 } opcode_t;
 
 /* Modify PC in the case that we have a prefixed instruction. */

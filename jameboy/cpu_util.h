@@ -10,6 +10,7 @@
 typedef enum Opcodes {
     OP_UNIMP, // for unimplemented opcodes
     OP_NOP,
+    OP_HLT,
     OP_LD_RR,
     OP_LD_RN,
     OP_LD_RHL, // load legister from mem

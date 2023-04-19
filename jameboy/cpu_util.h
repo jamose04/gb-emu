@@ -78,6 +78,7 @@ typedef enum Opcodes {
     OP_ADD_HL_SP_nn,
 } opcode_t;
 
-opcode_t get_op();
+/* Modify PC in the case that we have a prefixed instruction. */
+opcode_t get_op(byte_t code, jregister_t *pc);
 
 #endif

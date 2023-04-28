@@ -8,14 +8,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static char (*tab)[100];
+
 /*
  * Read the next line in file
  */
-void read_line(char *line, FILE *fp)
+int read_line(char *line, FILE *fp)
 {
     char c;
     while ((c = getc(fp)) != '\n') {
+        if (c == EOF)
+            return -1;
         *(line++) = c;
+    }
+    *line = 0;
+    return 0;
+}
+
+void build_table(FILE *fp)
+{
+    char linebuf[100] = {0};
+    read_line(linebuf, fp);
+    tab = malloc(sizeof(char) * 100 * atoi(linebuf));
+
+    int i = 0;
+    while (read_line(linebuf, fp) != -1) {
+        
     }
 }
 
@@ -30,5 +48,6 @@ int main(int argc, char *argv[])
     }
 
     FILE *fp = fopen(argv[1], "r");
+    build_table(fp);
     return 0;
 }

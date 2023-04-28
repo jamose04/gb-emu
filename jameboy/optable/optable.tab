@@ -45,7 +45,7 @@ OP_LD_RR
 69
 6a
 6b
-5c
+6c
 6d
 6f
 78
@@ -396,6 +396,10 @@ OP_RET_I
 d9
 ;
 OP_RST_N
+c7
+d7
+e7
+f7
 cf
 df
 ef

@@ -82,19 +82,28 @@ void print_table(int r, int c)
     printf("#ifndef OPTABLE_H\n");
     printf("#define OPTABLE_H\n");
 
-    printf("const byte_t instr_lookup[] =\n\t{");
+    printf("const byte_t instr_lookup[] =\n\t");
+
+    printf("\n/*\n\t        %14x", 0);
     int i;
+    for (i = 1; i < c; i++) {
+        printf(", %14x", i);
+    }
+
+    printf("\n*/\n\t{\n\t");
+
     for (i = 0; i < r; i++) {
         if (i != 0) {
             printf(",\n\t");
         }
-        printf("%s", ((*(tab[i * c + 1]) == 0) ? "OP_UNIMP" : tab[i * c + 1]));
+        printf("/* %2x */", i);
+        printf("%14s", ((*(tab[i * c + 1]) == 0) ? "OP_UNIMP" : tab[i * c + 1]));
         int j;
-        for (j = 0; j < c; j++) {
-            printf(", %s", ((*(tab[i * c + j]) == 0) ? "OP_UNIMP" : tab[i * c + j]));
+        for (j = 1; j < c; j++) {
+            printf(", %14s", ((*(tab[i * c + j]) == 0) ? "OP_UNIMP" : tab[i * c + j]));
         }
     }
-    printf("}\n");
+    printf("\n\t};\n");
     printf("#endif OPTABLE_H\n");
 }
 

@@ -86,6 +86,7 @@ typedef enum Opcodes {
     OP_RL_R,
     OP_RL_HL,
     OP_RRC_R,
+    OP_RRC_HL,
     OP_RR_R,
     OP_RR_HL,
     OP_SLA_R,

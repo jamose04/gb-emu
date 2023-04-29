@@ -9,6 +9,8 @@
 
 #define IMEM_SIZE 0x8000
 
+#define GBBOOT_SIZE 0x100
+
 bool init_mem(FILE *gbboot, FILE *rom);
 
 void imem_dump(int n);

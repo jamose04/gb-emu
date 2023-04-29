@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 byte_t *imem;
+byte_t *bootrom;
 byte_t *dmem;
 byte_t *vmem;
 
@@ -18,6 +19,14 @@ bool init_mem(FILE *gbboot, FILE *rom)
 
     int i = 0;
     while (fread(&imem[i++], 1, 1, rom))
+        ;
+
+    bootrom = (byte_t *) malloc(sizeof(byte_t) * GBBOOT_SIZE);
+    if (!bootrom) 
+        return false;
+        
+    i = 0;
+    while (fread(&bootrom[i++], 1, 1, gbboot))
         ;
 
     return true;

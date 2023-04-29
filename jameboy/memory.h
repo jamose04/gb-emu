@@ -1,13 +1,18 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
+#include "types.h"
+
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define IMEM_SIZE 0x8000
 
 bool init_mem(FILE *gbboot, FILE *rom);
 
 void imem_dump(int n);
+
+byte_t imem_get(uint16_t addr);
 
 #endif //MEMORY_H

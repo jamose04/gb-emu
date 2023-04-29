@@ -122,7 +122,7 @@ typedef enum Opcodes {
     OP_RST_N,
 } opcode_t;
 
-/* Modify PC in the case that we have a prefixed instruction. */
-opcode_t get_op(byte_t code, jregister_t *pc);
+/* Get op and increment pc accordingly (increments to byte after opcode) */
+opcode_t get_op_inc(uint16_t *pc);
 
 #endif

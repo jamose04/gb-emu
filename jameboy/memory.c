@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef unsigned char byte_t;
-
 byte_t *imem;
 byte_t *dmem;
 byte_t *vmem;
@@ -40,4 +38,16 @@ void imem_dump(int n)
         }
         printf("\n");
     }
+}
+
+/*
+ * Get imem at addr.
+ */
+byte_t imem_get(uint16_t addr)
+{
+    if (addr < 0 || addr >= IMEM_SIZE) {
+        fprintf(stderr, "<ERROR> Invalid imem read at %x. Exiting...\n", addr);
+        exit(1);
+    }
+    return imem[addr];
 }

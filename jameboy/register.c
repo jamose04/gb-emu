@@ -3,12 +3,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-byte_t read_hi(jregister_t reg)
+byte_t read_hi(uint16_t reg)
 {
     return reg >> 8;
 }
 
-byte_t read_lo(jregister_t reg)
+byte_t read_lo(uint16_t reg)
 {
     return reg & 0xffu;
 }

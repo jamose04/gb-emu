@@ -2,6 +2,7 @@
 #define MEMORY_H
 
 #include "types.h"
+#include "iomem.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -18,6 +19,6 @@ void imem_dump(int n);
 byte_t imem_get(uint16_t addr);
 
 /* Use this to write to an address */
-void mem_write(uint16_t addr);
+bool mem_write(uint16_t addr, byte_t val);
 
 #endif //MEMORY_H

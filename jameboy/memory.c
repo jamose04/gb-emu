@@ -17,7 +17,7 @@ bool init_mem(FILE *gbboot, FILE *rom)
         return false;
 
     int i = 0;
-    while (fread(&imem[i++], 1, 1, gbboot))
+    while (fread(&imem[i++], 1, 1, rom))
         ;
 
     return true;

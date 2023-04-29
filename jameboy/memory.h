@@ -15,4 +15,7 @@ void imem_dump(int n);
 
 byte_t imem_get(uint16_t addr);
 
+/* Use this to write to an address */
+void mem_write(uint16_t addr);
+
 #endif //MEMORY_H

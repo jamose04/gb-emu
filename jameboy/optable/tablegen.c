@@ -117,5 +117,7 @@ int main(int argc, char *argv[])
     FILE *fp = fopen(argv[1], "r");
     build_table(fp);
     print_table(16, 16, argv[2]);
+    free(tab);
+    fclose(fp);
     return 0;
 }

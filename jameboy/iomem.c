@@ -30,3 +30,8 @@ bool iomem_write(uint16_t addr, byte_t val)
         iomem_stat.gbboot_enable = (val == 0);
     }
 }
+
+bool iomem_gbboot_enable()
+{
+    return iomem_stat.gbboot_enable;
+}

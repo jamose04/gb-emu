@@ -98,6 +98,29 @@ static addrspace_t get_addrspace(uint16_t addr)
         return ASPACE_INVALID;
 }
 
+/*
+ * Read a byte of memory located at addr.
+ */
+byte_t mem_read(uint16_t addr)
+{
+    addrspace_t space = get_addrspace(addr);
+    switch (space) {
+        case ASPACE_INVALID:
+            fprintf(stderr, "<ERROR> Invalid memory read. Exiting...\n");
+            exit(1);
+        case ASPACE_ROM00:
+            if (addr < GBBOOT_SIZE && iomem_gbboot_enable())
+                return bootrom[addr];
+            else
+                return imem[addr];
+        case ASPACE_ROM01:
+            return imem[addr];
+        default:
+            return 0;
+    }
+    return 0;
+}
+
 bool mem_write(uint16_t addr, byte_t val)
 {
     addrspace_t space = get_addrspace(addr);

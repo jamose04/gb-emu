@@ -122,7 +122,25 @@ typedef enum Opcodes {
     OP_RST_N,
 } opcode_t;
 
+typedef enum Aluops {
+    ALU_NOP,
+    ALU_PASS,
+    ALU_ADD,
+    ALU_SUB,
+    ALU_XOR,
+    ALU_OR,
+    ALU_AND,
+    ALU_RL,
+    ALU_RR,
+    ALU_SL,
+    ALU_SRA,
+    ALU_SRL,
+} alu_op_t;
+
 /* Get op and increment pc accordingly (increments to byte after opcode) */
 opcode_t get_op_inc(uint16_t *pc);
+
+/* Perform an alu operation */
+uint8_t alu(alu_op_t alu_op, uint8_t src1, uint8_t src2, uint8_t *f);
 
 #endif

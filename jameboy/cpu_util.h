@@ -137,10 +137,24 @@ typedef enum Aluops {
     ALU_SRL,
 } alu_op_t;
 
+typedef enum Reg_access_mode {
+    RA_HI,
+    RA_LO,
+    RA_WH,
+} reg_access_mode_t;
+
 /* Get op and increment pc accordingly (increments to byte after opcode) */
 opcode_t get_op_inc(uint16_t *pc);
 
 /* Perform an alu operation */
 uint8_t alu(alu_op_t alu_op, uint8_t src1, uint8_t src2, uint8_t *f);
+
+/* Write a register. If mode is HI or LO, write the low 8-bits of val into 
+ * the 8 bit register. If mode is WH, write all 16 bits into the joint
+ * register */
+void write_register(uint16_t *reg, reg_access_mode_t mode, uint16_t val);
+
+/* Read a register. For modes HI and LO, return 8-bit value */
+uint16_t read_register(uint16_t reg, reg_access_mode_t mode);
 
 #endif

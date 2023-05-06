@@ -18,7 +18,7 @@ byte_t read_lo(uint16_t reg)
  * Note that for SP and PC, all 16-bits must be written, so this and
  * write_lo cannot be used for those.
  */
-void write_hi(cpu_reg_t *cpu_reg, enum Reg_sel sel, byte_t val)
+void write_hi(cpu_reg_t *cpu_reg, reg_sel_t sel, byte_t val)
 {
     uint16_t wval = ((uint16_t) val) << 8;
     switch (sel) {
@@ -45,7 +45,7 @@ void write_hi(cpu_reg_t *cpu_reg, enum Reg_sel sel, byte_t val)
  * Note that to write to F, we use a different function.
  * In other words, flags cannot be set using this interface.
  */
-void write_lo(cpu_reg_t *cpu_reg, enum Reg_sel sel, byte_t val)
+void write_lo(cpu_reg_t *cpu_reg, reg_sel_t sel, byte_t val)
 {
     uint16_t wval = (uint16_t) val;
     switch (sel) {

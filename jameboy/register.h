@@ -14,14 +14,14 @@ typedef struct Reg {
     uint16_t PC;
 } cpu_reg_t;
 
-enum Reg_sel {
+typedef enum Reg_sel {
     AF,
     BC,
     DE,
     HL,
     SP,
     PC,
-};
+} reg_sel_t;
 
 /* We can read from any of the registers */
 
@@ -29,9 +29,9 @@ byte_t read_hi(uint16_t reg);
 
 byte_t read_lo(uint16_t reg);
 
-void write_hi(cpu_reg_t *cpu_reg, enum Reg_sel sel, byte_t val);
+void write_hi(cpu_reg_t *cpu_reg, reg_sel_t sel, byte_t val);
 
-void write_lo(cpu_reg_t *cpu_reg, enum Reg_sel sel, byte_t val);
+void write_lo(cpu_reg_t *cpu_reg, reg_sel_t sel, byte_t val);
 
 // for debug
 void print_registers(const cpu_reg_t *cpu_reg);

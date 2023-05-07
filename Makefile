@@ -1,4 +1,10 @@
-all: table
+all: jameboy
+
+test: jameboy
+	cc -ggdb -Ijameboy jameboy/cpu_util.c jameboy/memory.c jameboy/iomem.c tests/alu_test.c -o bin/alu_test
+	bin/alu_test
+
+jameboy: table
 	cc -ggdb jameboy/*.c -o bin/jameboy
 
 table:

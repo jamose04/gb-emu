@@ -133,6 +133,8 @@ typedef enum Aluops {
     ALU_AND,
     ALU_RL,
     ALU_RR,
+    ALU_RL_CARRY,
+    ALU_RR_CARRY,
     ALU_SL,
     ALU_SRA,
     ALU_SRL,

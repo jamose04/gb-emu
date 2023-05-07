@@ -126,6 +126,7 @@ typedef enum Aluops {
     ALU_NOP,
     ALU_PASS,
     ALU_ADD,
+    ALU_ADD16,
     ALU_SUB,
     ALU_XOR,
     ALU_OR,
@@ -147,7 +148,7 @@ typedef enum Reg_access_mode {
 opcode_t get_op_inc(uint16_t *pc);
 
 /* Perform an alu operation */
-uint8_t alu(alu_op_t alu_op, uint8_t src1, uint8_t src2, uint8_t *f);
+uint16_t alu(alu_op_t alu_op, uint16_t src1, uint16_t src2, uint8_t *f);
 
 /* Write a register. If mode is HI or LO, write the low 8-bits of val into 
  * the 8 bit register. If mode is WH, write all 16 bits into the joint

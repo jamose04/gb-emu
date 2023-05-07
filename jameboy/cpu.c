@@ -4,18 +4,10 @@
 
 #include <stdio.h>
 
-typedef struct F_Buf {
-} f_buf_t;
-
-typedef struct X_Buf {
-    opcode_t op;
-    // used to get bits from instruction
-} x_buf_t;
-
 struct {
     cpu_reg_t registers;
-    f_buf_t f_buf;
-    x_buf_t x_buf;
+    opcode_t x_op;
+    unsigned x_insbits;
 } cpu;
 
 /* SP will be set properly by the boot ROM */
@@ -27,7 +19,7 @@ void init_cpu()
     cpu.registers.HL = 0x0;
     cpu.registers.SP = 0x0;
     cpu.registers.PC = 0x0;
-    cpu.x_buf.op = OP_NOP;
+    cpu.x_op = OP_NOP;
 }
 
 void print_cpu_state()
@@ -39,6 +31,8 @@ void print_cpu_state()
 // return number of machine cycles (1 for fetch)
 int cpu_fetch()
 {
+	// buffer the operation.
+	cpu.op = get_op_inc(&cpu.registers.PC, &cpu.x_insbits);
     return 1;
 }
 

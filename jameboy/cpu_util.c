@@ -6,13 +6,15 @@
 
 #include <assert.h>
 
-opcode_t get_op_inc(uint16_t *pc)
+opcode_t get_op_inc(uint16_t *pc, uint8_t *insbits)
 {
     if (*pc != 0xcb) {
-        return instr_lookup[imem_get((*pc)++)];
+        *insbits = mem_read((*pc)++);
+        return instr_lookup[*insbits];
     } else {
         (*pc)++;
-        return cb_instr_lookup[imem_get((*pc)++)];
+        *insbits = mem_read((*pc)++);
+        return cb_instr_lookup[*insbits];
     }
 }
 

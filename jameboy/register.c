@@ -21,47 +21,16 @@ byte_t read_lo(uint16_t reg)
 void write_hi(cpu_reg_t *cpu_reg, reg_sel_t sel, byte_t val)
 {
     uint16_t wval = ((uint16_t) val) << 8;
-    switch (sel) {
-        case AF:
-            cpu_reg->AF = (cpu_reg->AF & 0xffu) | wval;
-            break;
-        case BC:
-            cpu_reg->BC = (cpu_reg->BC & 0xffu) | wval;
-            break;
-        case DE:
-            cpu_reg->DE = (cpu_reg->DE & 0xffu) | wval;
-            break;
-        case HL:
-            cpu_reg->HL = (cpu_reg->DE & 0xffu) | wval;
-            break;
-        default:
-            fprintf(stderr, "Invalid hi write to Register: %d\n", sel);
-            exit(1);
-    }
+    cpu_reg->registers[sel] = (cpu_reg->registers[sel] & 0xffu) | wval;
 }
 
 /*
  * Write to the lo bits of register sel.
- * Note that to write to F, we use a different function.
- * In other words, flags cannot be set using this interface.
  */
 void write_lo(cpu_reg_t *cpu_reg, reg_sel_t sel, byte_t val)
 {
     uint16_t wval = (uint16_t) val;
-    switch (sel) {
-        case BC:
-            cpu_reg->BC = (cpu_reg->BC & ~0xffu) | wval;
-            break;
-        case DE:
-            cpu_reg->DE = (cpu_reg->DE & ~0xffu) | wval;
-            break;
-        case HL:
-            cpu_reg->HL = (cpu_reg->HL & ~0xffu) | wval;
-            break;
-        default:
-            fprintf(stderr, "Invalid lo write to Register: %d\n", sel);
-            exit(1);
-    }
+    cpu_reg->registers[sel] = (cpu_reg->registers[sel] & ~0xffu) | wval;
 }
 
 /*
@@ -70,10 +39,10 @@ void write_lo(cpu_reg_t *cpu_reg, reg_sel_t sel, byte_t val)
 void print_registers(const cpu_reg_t *cpu_reg)
 {
     printf("REGISTER STATE:\n");
-    printf("AF: %x\n", cpu_reg->AF);
-    printf("BC: %x\n", cpu_reg->BC);
-    printf("DE: %x\n", cpu_reg->DE);
-    printf("HL: %x\n", cpu_reg->HL);
-    printf("SP: %x\n", cpu_reg->SP);
-    printf("PC: %x\n", cpu_reg->PC);
+    printf("FA: %x\n", cpu_reg->registers[FA]);
+    printf("BC: %x\n", cpu_reg->registers[BC]);
+    printf("DE: %x\n", cpu_reg->registers[DE]);
+    printf("HL: %x\n", cpu_reg->registers[HL]);
+    printf("SP: %x\n", cpu_reg->registers[SP]);
+    printf("PC: %x\n", cpu_reg->registers[PC]);
 }

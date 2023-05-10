@@ -120,6 +120,7 @@ typedef enum Opcodes {
     OP_RET_F,
     OP_RET_I,
     OP_RST_N,
+    OP_NUM_OPCODES,
 } opcode_t;
 
 typedef enum Aluops {
@@ -147,7 +148,7 @@ typedef enum Reg_access_mode {
 } reg_access_mode_t;
 
 /* Get op and increment pc accordingly (increments to byte after opcode) */
-opcode_t get_op_inc(uint16_t *pc);
+opcode_t get_op_inc(uint16_t *pc, uint8_t *insbits);
 
 /* Perform an alu operation */
 uint16_t alu(alu_op_t alu_op, uint16_t src1, uint16_t src2, uint8_t *f);

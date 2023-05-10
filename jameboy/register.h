@@ -6,19 +6,14 @@
 #include "types.h"
 
 typedef struct Reg {
-    uint16_t AF;
-    uint16_t BC;
-    uint16_t DE;
-    uint16_t HL;
-    uint16_t SP;
-    uint16_t PC;
+    uint16_t registers[6];
 } cpu_reg_t;
 
 typedef enum Reg_sel {
-    AF,
     BC,
     DE,
     HL,
+    FA, // really AF, but I want A to be stored after F in the register array
     SP,
     PC,
 } reg_sel_t;

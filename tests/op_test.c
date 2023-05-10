@@ -7,5 +7,6 @@
 int main(int argc, char *argv[])
 {
 	init_cpu();
+	printf("hello\n");
 	return 0;
 }

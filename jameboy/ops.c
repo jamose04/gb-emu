@@ -90,6 +90,37 @@ void op_ld_nna(cpu_state_t *cpu)
     mem_write(nn, *((uint8_t *) (cpu->reg.registers + FA) + 1));
 }
 
+void op_ldh_ac(cpu_state_t *cpu)
+{
+    //register c + 0xff00
+    uint8_t val = mem_read(0xff00u + (cpu->reg.registers[BC] & 0xffu));
+    *((uint8_t *) (cpu->reg.registers + FA) + 1) = val;
+}
+
+void op_ldh_ca(cpu_state_t *cpu)
+{
+    uint16_t addr = 0xff00u + (cpu->reg.registers[BC] & 0xffu);
+    mem_write(addr, *((uint8_t *) (cpu->reg.registers + FA) + 1));
+}
+
+void op_ldh_an(cpu_state_t *cpu)
+{
+    uint8_t val = mem_read(0xff00u + reg_read_lo(BC, &cpu->reg));
+    reg_write_lo(FA, val, &cpu->reg);
+}
+
+void op_ldh_na(cpu_state_t *cpu)
+{
+    uint16_t addr = 0xff00u + reg_read_lo(BC, &cpu->reg);
+    mem_write(addr, reg_read_lo(FA, &cpu->reg));
+}
+
+void op_ld_ahl_d(cpu_state_t *cpu)
+{
+    uint8_t memval = mem_read(cpu->reg.registers[HL]);
+    reg_write_lo(FA, memval, &cpu->reg);
+}
+
 /* End: 8-bit memory operations */
 
 const void (*op_imp[OP_NUM_OPCODES]) (cpu_state_t *cpu) =

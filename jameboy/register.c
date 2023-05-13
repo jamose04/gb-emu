@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/*** BEGIN DEPRECATED FUNCTIONS ***/
+
 byte_t read_hi(uint16_t reg)
 {
     return reg >> 8;
@@ -31,6 +33,34 @@ void write_lo(cpu_reg_t *cpu_reg, reg_sel_t sel, byte_t val)
 {
     uint16_t wval = (uint16_t) val;
     cpu_reg->registers[sel] = (cpu_reg->registers[sel] & ~0xffu) | wval;
+}
+
+/*** END DEPRECATED FUNCTIONS ***/
+
+/*
+ *  NOTE: It is important to realize that for convenience, we have a 16-bit
+ * register called FA instead of AF. This means the the 8 hi bits of this
+ * register correspont to F, while the lo 8 bits correspond to A. This is
+ * reverse of the actual hardware.
+ */
+uint8_t reg_read_hi(reg_sel_t sel, const cpu_reg_t *reg)
+{
+	return reg->registers[sel] >> 8;
+}
+
+uint8_t reg_read_lo(reg_sel_t sel, const cpu_reg_t *reg)
+{
+	return reg->registers[sel] & 0xffu;
+}
+
+void reg_write_hi(reg_sel_t sel, uint8_t val, cpu_reg_t *reg)
+{
+	*((uint8_t *) (reg->registers + sel)) = val;
+}
+
+void reg_write_lo(reg_sel_t sel, uint8_t val, cpu_reg_t *reg)
+{
+	*((uint8_t *) (reg->registers + sel) + 1) = val;
 }
 
 /*

@@ -23,4 +23,6 @@ byte_t mem_read(uint16_t addr);
 /* Use this to write to an address */
 bool mem_write(uint16_t addr, byte_t val);
 
+void mem_write16(uint16_t addr, uint16_t val);
+
 #endif //MEMORY_H

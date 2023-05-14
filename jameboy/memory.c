@@ -133,3 +133,8 @@ bool mem_write(uint16_t addr, byte_t val)
             exit(1);
     };
 }
+
+void mem_write16(uint16_t addr, uint16_t val)
+{
+	return;
+}

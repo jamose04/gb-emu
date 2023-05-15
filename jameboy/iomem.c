@@ -14,6 +14,11 @@ bool iomem_init()
     return true;
 }
 
+void iomem_close()
+{
+	return;
+}
+
 /*
  * Write to a register in iomem.
  * Also, check to make sure addr is in the right addr space.

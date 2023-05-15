@@ -127,6 +127,8 @@ bool mem_write(uint16_t addr, byte_t val)
     switch (space) {
         case ASPACE_IO_REG:
             return iomem_write(addr, val);
+        case ASPACE_HRAM:
+			
         default:
             fprintf(stderr, 
                 "<ERROR> Memory write to invalid address: %x\n", addr);

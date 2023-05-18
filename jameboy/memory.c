@@ -138,29 +138,29 @@ static void write(uint16_t addr, uint16_t val, bool w16)
     addrspace_t space = get_addrspace(addr);
     switch (space) {
         case ASPACE_IO_REG:
-			if (w16) {
-				fprintf(stderr, "<ERROR> Unsupported 16-bit write to iomem\n");
-				exit(1);
-			}
+            if (w16) {
+                fprintf(stderr, "<ERROR> Unsupported 16-bit write to iomem\n");
+                exit(1);
+            }
             iomem_write(addr, val);
         case ASPACE_HRAM:
-			if (w16)
-				hram_write16(addr, val);
-			else
-				hram_write(addr, (uint8_t) (val & 0xffu));
-			break;
+            if (w16)
+                hram_write16(addr, val);
+            else
+                hram_write(addr, (uint8_t) (val & 0xffu));
+            break;
 		case ASPACE_WRAM:
-			if (w16)
-				wram_write16(addr, val);
-			else
-				wram_write(addr, (uint8_t) (val & 0xffu));
-			break;
+            if (w16)
+                wram_write16(addr, val);
+            else
+                wram_write(addr, (uint8_t) (val & 0xffu));
+            break;
 		case ASPACE_VRAM:
-			if (w16)
-				vram_write16(addr, val);
-			else
-				vram_write(addr, (uint8_t) (val & 0xffu));
-			break;
+            if (w16)
+                vram_write16(addr, val);
+            else
+                vram_write(addr, (uint8_t) (val & 0xffu));
+            break;
         default:
             fprintf(stderr, 
                 "<ERROR> Memory write to invalid address: %x\n", addr);
@@ -170,10 +170,10 @@ static void write(uint16_t addr, uint16_t val, bool w16)
 
 void mem_write(uint16_t addr, uint8_t val)
 {
-	write(addr, val, false);
+    write(addr, val, false);
 }
 
 void mem_write16(uint16_t addr, uint16_t val)
 {
-	write(addr, val, true);
+    write(addr, val, true);
 }

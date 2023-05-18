@@ -3,10 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-byte_t *imem;
-byte_t *bootrom;
-byte_t *dmem;
-byte_t *vmem;
+uint8_t *imem;
+uint8_t *bootrom;
 
 typedef enum Addrspace {
     ASPACE_ROM00,
@@ -24,9 +22,9 @@ typedef enum Addrspace {
 /*
  * Initialize memory. Return true if success, false if failure.
  */
-bool init_mem(FILE *gbboot, FILE *rom)
+bool mem_init(FILE *gbboot, FILE *rom)
 {
-    imem = (byte_t *) malloc(sizeof(byte_t) * IMEM_SIZE);
+    imem = malloc(sizeof(byte_t) * IMEM_SIZE);
     if (!imem)
         return false;
 
@@ -34,7 +32,7 @@ bool init_mem(FILE *gbboot, FILE *rom)
     while (fread(&imem[i++], 1, 1, rom))
         ;
 
-    bootrom = (byte_t *) malloc(sizeof(byte_t) * GBBOOT_SIZE);
+    bootrom = malloc(sizeof(byte_t) * GBBOOT_SIZE);
     if (!bootrom) 
         return false;
         
@@ -42,6 +40,13 @@ bool init_mem(FILE *gbboot, FILE *rom)
     while (fread(&bootrom[i++], 1, 1, gbboot))
         ;
 
+	if (!iomem_init()) {
+		return false;
+	}
+	
+	if (!rmem_init()) {
+		return false;
+	}
     return true;
 }
 
@@ -65,7 +70,7 @@ void imem_dump(int n)
 /*
  * Get imem at addr.
  */
-byte_t imem_get(uint16_t addr)
+uint8_t imem_get(uint16_t addr)
 {
     if (addr < 0 || addr >= IMEM_SIZE) {
         fprintf(stderr, "<ERROR> Invalid imem read at %x. Exiting...\n", addr);
@@ -101,7 +106,7 @@ static addrspace_t get_addrspace(uint16_t addr)
 /*
  * Read a byte of memory located at addr.
  */
-byte_t mem_read(uint16_t addr)
+uint8_t mem_read(uint16_t addr)
 {
     addrspace_t space = get_addrspace(addr);
     switch (space) {
@@ -115,20 +120,44 @@ byte_t mem_read(uint16_t addr)
                 return imem[addr];
         case ASPACE_ROM01:
             return imem[addr];
+        case ASPACE_HRAM:
+			return hram_read(addr);
+		case ASPACE_WRAM:
+			return wram_read(addr);
+		case ASPACE_VRAM:
+			return vram_read(addr);
         default:
             return 0;
     }
     return 0;
 }
 
-bool mem_write(uint16_t addr, byte_t val)
+// If w16, then write the lower 8 bits of val to (addr).
+static void write(uint16_t addr, uint16_t val, bool w16)
 {
     addrspace_t space = get_addrspace(addr);
     switch (space) {
         case ASPACE_IO_REG:
-            return iomem_write(addr, val);
+			if (w16) {
+				fprintf(stderr, "<ERROR> Unsupported 16-bit write to iomem\n");
+				exit(1);
+			}
+            iomem_write(addr, val);
         case ASPACE_HRAM:
-			
+			if (w16)
+				hram_write16(addr, val);
+			else
+				hram_write(addr, (uint8_t) (val & 0xffu));
+		case ASPACE_WRAM:
+			if (w16)
+				wram_write16(addr, val);
+			else
+				wram_write(addr, (uint8_t) (val & 0xffu));
+		case ASPACE_VRAM:
+			if (w16)
+				vram_write16(addr, val);
+			else
+				vram_write(addr, (uint8_t) (val & 0xffu));
         default:
             fprintf(stderr, 
                 "<ERROR> Memory write to invalid address: %x\n", addr);
@@ -136,7 +165,12 @@ bool mem_write(uint16_t addr, byte_t val)
     };
 }
 
+void mem_write(uint16_t addr, uint8_t val)
+{
+	write(addr, val, false);
+}
+
 void mem_write16(uint16_t addr, uint16_t val)
 {
-	return;
+	write(addr, val, true);
 }

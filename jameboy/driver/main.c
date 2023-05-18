@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 void what(FILE *fp) {
-    init_mem(fp, NULL);
+    mem_init(fp, NULL);
     imem_dump(256);
 }
 

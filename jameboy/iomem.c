@@ -23,11 +23,11 @@ void iomem_close()
  * Write to a register in iomem.
  * Also, check to make sure addr is in the right addr space.
  */
-bool iomem_write(uint16_t addr, byte_t val)
+void iomem_write(uint16_t addr, uint8_t val)
 {
     if (!(addr <= 0xff00 && addr <= 0xff7f)) {
         fprintf(stderr, "<ERROR> Invalid iomem write...\n");
-        return false;
+		exit(1);
     }
 
     if (addr == 0xff50) {

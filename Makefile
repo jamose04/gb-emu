@@ -1,13 +1,15 @@
 all: jameboy
 
 test: jameboy
-	cc -ggdb -Ijameboy jameboy/cpu_util.c jameboy/memory.c jameboy/iomem.c tests/alu_test.c -o bin/alu_test
-	cc -ggdb -Ijameboy jameboy/cpu.c jameboy/cpu_util.c jameboy/memory.c jameboy/iomem.c jameboy/register.c tests/op_test.c -o bin/op_test
+	cc -ggdb -Ijameboy tests/alu_test.c tests/test_util.c jameboy/*.c -o bin/alu_test
+	cc -ggdb -Ijameboy tests/op_test.c tests/test_util.c jameboy/*.c -o bin/op_test
+	cc -ggdb -Ijameboy tests/mem_test.c tests/test_util.c jameboy/*.c -o bin/mem_test
 	bin/alu_test
 	bin/op_test
+	bin/mem_test
 
 jameboy: table
-	cc -ggdb jameboy/*.c -o bin/jameboy
+	cc -ggdb -Ijameboy jameboy/driver/main.c jameboy/*.c -o bin/jameboy
 
 table:
 	cc jameboy/optable/tablegen.c -o bin/tablegen

@@ -6,7 +6,7 @@
 bool init_machine(FILE *gbboot, FILE *rom)
 {
     init_cpu();
-    if (!init_mem(gbboot, rom)) {
+    if (!mem_init(gbboot, rom)) {
         fprintf(stderr, "<ERROR> mem init failed.");
         return false;
     }

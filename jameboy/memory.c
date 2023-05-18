@@ -148,16 +148,19 @@ static void write(uint16_t addr, uint16_t val, bool w16)
 				hram_write16(addr, val);
 			else
 				hram_write(addr, (uint8_t) (val & 0xffu));
+			break;
 		case ASPACE_WRAM:
 			if (w16)
 				wram_write16(addr, val);
 			else
 				wram_write(addr, (uint8_t) (val & 0xffu));
+			break;
 		case ASPACE_VRAM:
 			if (w16)
 				vram_write16(addr, val);
 			else
 				vram_write(addr, (uint8_t) (val & 0xffu));
+			break;
         default:
             fprintf(stderr, 
                 "<ERROR> Memory write to invalid address: %x\n", addr);

@@ -59,13 +59,13 @@ void vram_write16(uint16_t addr, uint16_t val)
 void wram_write(uint16_t addr, uint8_t val)
 {
     check_addr(0xc000u, 0xdfffu, addr, "wram8");
-    wram[addr - 0xc0000u] = val;
+    wram[addr - 0xc000u] = val;
 }
 
 void wram_write16(uint16_t addr, uint16_t val)
 {
     check_addr(0xc000u, 0xdffeu, addr, "wram16");
-    *((uint16_t *) (wram + (addr - 0xc0000u))) = val;
+    *((uint16_t *) (wram + (addr - 0xc000u))) = val;
 }
 
 void hram_write(uint16_t addr, uint8_t val)
@@ -89,7 +89,7 @@ uint8_t vram_read(uint16_t addr)
 uint8_t wram_read(uint16_t addr)
 {
     check_addr(0xc000u, 0xdfffu, addr, "wram8");
-    return wram[addr - 0xc0000u];
+    return wram[addr - 0xc000u];
 }
 
 uint8_t hram_read(uint16_t addr)

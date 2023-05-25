@@ -5,10 +5,38 @@
 
 #include <stdlib.h>
 
-// NOTE: we don't really use the read and write functions for doing such
-// operations on registers. Might remove later.
+#define REGS(RR) cpu->reg.registers[RR]
+
+//extern cpu_state_t cpu;
+// Maybe use this later
+// then:
+// reg16_t *regs = cpu->reg.registers;
+// then we can do regs[RR] rather than cpu->reg.registers[RR];
+
+// NOTE: Probably move this later. Why?
+static uint16_t get_inc_pc(cpu_state_t *cpu)
+{
+    uint16_t pc = reg16_toi(cpu->reg.registers[PC]);
+    reg_write16(pc + 1, PC, &cpu->reg);
+    return pc;
+}
 
 /* Start: 8-bit memory operations */
+
+int op_unimp(cpu_state_t *cpu)
+{
+    return 0;
+}
+
+int op_nop(cpu_state_t *cpu)
+{
+    return 1;
+}
+
+int op_hlt(cpu_state_t *cpu)
+{
+    return 1;
+}
 
 // NOTE: for neither of the following two functions shall i_dst or i_src
 // be equal to 6 (this is flag).
@@ -16,162 +44,145 @@ int op_ld_rr(cpu_state_t *cpu)
 {
     uint8_t i_dst = (cpu->x_insbits >> 3) & 0x07u;
     uint8_t i_src = cpu->x_insbits & 0x07u;
-    
-    uint8_t *reg8 = (uint8_t *) cpu->reg.registers;
-    reg8[i_dst] = reg8[i_src];
+    *reg8_at(i_dst, &cpu->reg) = *reg8_at(i_src, &cpu->reg);
     return 1;
 }
 
 int op_ld_rn(cpu_state_t *cpu)
 {
-    uint8_t n_byte = mem_read((cpu->reg.registers[PC])++);
+    uint8_t n_byte = mem_read(get_inc_pc(cpu));
     uint8_t i_dst = (cpu->x_insbits >> 3) & 0x07u;
-    
-    uint8_t *reg8 = (uint8_t *) cpu->reg.registers;
-    reg8[i_dst] = n_byte;
+    *reg8_at(i_dst, &cpu->reg) = n_byte;
     return 2;
 }
 
 int op_ld_rhl(cpu_state_t *cpu)
 {
     uint8_t i_dst = (cpu->x_insbits >> 3) & 0x07u;
-    
-    *((uint8_t *) cpu->reg.registers + i_dst)
-        = mem_read(cpu->reg.registers[HL]);
+    *reg8_at(i_dst, &cpu->reg) = mem_read(reg16_toi(cpu->reg.registers[HL]));
     return 2;
 }
 
 int op_ld_hlr(cpu_state_t *cpu)
 {
     uint8_t i_src = cpu->x_insbits & 0x07u;
-    mem_write(cpu->reg.registers[HL], 
-        *((uint8_t *) cpu->reg.registers + i_src));
+    mem_write(reg16_toi(cpu->reg.registers[HL]), *reg8_at(i_src, &cpu->reg));
     return 2;
 }
 
 int op_ld_hln(cpu_state_t *cpu)
 {
-    uint8_t n_byte = mem_read((cpu->reg.registers[PC])++);
-    mem_write(cpu->reg.registers[HL], n_byte);
+    uint8_t n_byte = mem_read(get_inc_pc(cpu));
+    mem_write(reg16_toi(cpu->reg.registers[HL]), n_byte);
     return 3;
 }
 
 int op_ld_abc(cpu_state_t *cpu)
 {
-    *((uint8_t *) (cpu->reg.registers + FA) + 1)
-        = mem_read(cpu->reg.registers[BC]);
+    cpu->reg.registers[AF].hi = mem_read(reg16_toi(cpu->reg.registers[BC]));
     return 2;
 }
 
 int op_ld_ade(cpu_state_t *cpu)
 {
-    *((uint8_t *) (cpu->reg.registers + FA) + 1)
-        = mem_read(cpu->reg.registers[DE]);
+    cpu->reg.registers[AF].hi = mem_read(reg16_toi(cpu->reg.registers[DE]));
     return 2;
 }
 
 int op_ld_bca(cpu_state_t *cpu)
 {
-    mem_write(cpu->reg.registers[BC], 
-        *((uint8_t *) (cpu->reg.registers + FA) + 1));
+    mem_write(reg16_toi(cpu->reg.registers[BC]), cpu->reg.registers[AF].hi);
     return 2;
 }
 
 int op_ld_dea(cpu_state_t *cpu)
 {
-    mem_write(cpu->reg.registers[DE],
-        *((uint8_t *) (cpu->reg.registers + FA) + 1));
-        
+    mem_write(reg16_toi(cpu->reg.registers[DE]), cpu->reg.registers[AF].hi);
     return 2;
 }
 
 int op_ld_ann(cpu_state_t *cpu)
 {
-    uint16_t n_byte = mem_read((cpu->reg.registers[PC])++);
-    uint8_t nn_byte = mem_read((cpu->reg.registers[PC])++);
+    uint16_t n_byte = mem_read(get_inc_pc(cpu));
+    uint8_t nn_byte = mem_read(get_inc_pc(cpu));
     uint16_t nn = (n_byte << 8) | nn_byte;
-    *((uint8_t *) (cpu->reg.registers + FA) + 1)
-        = mem_read(nn);
+    cpu->reg.registers[AF].hi = mem_read(nn);
     return 4;
 }
 
 int op_ld_nna(cpu_state_t *cpu)
 {
-    uint16_t n_byte = mem_read((cpu->reg.registers[PC])++);
-    uint8_t nn_byte = mem_read((cpu->reg.registers[PC])++);
+    uint16_t n_byte = mem_read(get_inc_pc(cpu));
+    uint8_t nn_byte = mem_read(get_inc_pc(cpu));
     uint16_t nn = (n_byte << 8) | nn_byte;
-    mem_write(nn, *((uint8_t *) (cpu->reg.registers + FA) + 1));
+    mem_write(nn, cpu->reg.registers[AF].hi);
     return 4;
 }
 
 int op_ldh_ac(cpu_state_t *cpu)
 {
     //register c + 0xff00
-    uint8_t val = mem_read(0xff00u + (cpu->reg.registers[BC] & 0xffu));
-    *((uint8_t *) (cpu->reg.registers + FA) + 1) = val;
+    cpu->reg.registers[AF].hi = mem_read(0xff00u + cpu->reg.registers[BC].lo);
     return 2;
 }
 
 int op_ldh_ca(cpu_state_t *cpu)
 {
-    uint16_t addr = 0xff00u + (cpu->reg.registers[BC] & 0xffu);
-    mem_write(addr, *((uint8_t *) (cpu->reg.registers + FA) + 1));
+    mem_write(0xff00u + cpu->reg.registers[BC].lo, cpu->reg.registers[AF].hi);
     return 2;
 }
 
 int op_ldh_an(cpu_state_t *cpu)
 {
-    uint8_t val = mem_read(0xff00u + reg_read_lo(BC, &cpu->reg));
-    reg_write_lo(FA, val, &cpu->reg);
+    uint8_t n = mem_read(get_inc_pc(cpu));
+    cpu->reg.registers[AF].hi = mem_read(0xff00u + n);
     return 3;
 }
 
 int op_ldh_na(cpu_state_t *cpu)
 {
-    uint16_t addr = 0xff00u + reg_read_lo(BC, &cpu->reg);
-    mem_write(addr, reg_read_lo(FA, &cpu->reg));
+    uint8_t n = mem_read(get_inc_pc(cpu));
+    mem_write(0xff00u + n, cpu->reg.registers[AF].hi);
     return 3;
 }
 
 // helper!
 void op_ld_ahl(cpu_state_t *cpu)
 {
-    uint8_t memval = mem_read(cpu->reg.registers[HL]);
-    reg_write_lo(FA, memval, &cpu->reg);
+    cpu->reg.registers[AF].hi = mem_read(reg16_toi(cpu->reg.registers[HL]));
 }
 
 // helper!
 void op_ld_hla(cpu_state_t *cpu)
 {
-    uint16_t addr = cpu->reg.registers[HL];
-    mem_write(addr, reg_read_lo(FA, &cpu->reg));
+    mem_write(reg16_toi(cpu->reg.registers[HL]), cpu->reg.registers[AF].hi);
 }
 
 int op_ld_ahl_d(cpu_state_t *cpu)
 {
     op_ld_ahl(cpu);
-    cpu->reg.registers[HL]--;
+    reg_write16(reg16_toi(cpu->reg.registers[HL]) - 1, HL, &cpu->reg);
     return 2;
 }
 
 int op_ld_hla_d(cpu_state_t *cpu)
 {
     op_ld_hla(cpu);
-    cpu->reg.registers[HL]--;
+    reg_write16(reg16_toi(cpu->reg.registers[HL]) - 1, HL, &cpu->reg);
     return 2;
 }
 
 int op_ld_ahl_p(cpu_state_t *cpu)
 {
     op_ld_ahl(cpu);
-    cpu->reg.registers[HL]++;
+    reg_write16(reg16_toi(cpu->reg.registers[HL]) + 1, HL, &cpu->reg);
     return 2;
 }
 
 int op_ld_hla_p(cpu_state_t *cpu)
 {
     op_ld_hla(cpu);
-    cpu->reg.registers[HL]++;
+    reg_write16(reg16_toi(cpu->reg.registers[HL]) + 1, HL, &cpu->reg);
     return 2;
 }
 
@@ -179,72 +190,268 @@ int op_ld_hla_p(cpu_state_t *cpu)
 
 /* Begin: 16-bit memory operations */
 
+int map_rri(int rri)
+{
+    switch (rri) {
+        case 0:
+            return BC;
+        case 1:
+            return DE;
+        case 2:
+            return HL;
+        case 3:
+            return SP;
+        default:
+            fprintf(stderr, "<ERROR> Invalid RR selection...\n");
+            exit(1);
+    }
+}
+
 int op_ld_rr_nn(cpu_state_t *cpu)
 {
-    uint16_t n_byte = mem_read(cpu->reg.registers[PC]++);
-    uint8_t nn_byte = mem_read(cpu->reg.registers[PC]++);
-    uint16_t wval = (n_byte << 8) | nn_byte;
-    uint8_t ri = cpu->x_insbits >> 4;
+    uint16_t n_byte = mem_read(get_inc_pc(cpu));
+    uint8_t nn_byte = mem_read(get_inc_pc(cpu));
+    uint16_t nn = (n_byte << 8) | nn_byte;
+    uint8_t rri = map_rri(cpu->x_insbits >> 4);
     
-    if (0 <= ri || ri <= 3) {
-        fprintf(stderr, "<ERROR> Invalid RR write\n");
-        exit(1);
-    }
-    
-    if (ri == 3)
-        ri = SP;
-    cpu->reg.registers[ri] = wval;
-    
+    reg_write16(nn, rri, &cpu->reg);
     return 4;
 }
 
 int op_ld_nn_sp(cpu_state_t *cpu)
 {
-    uint16_t n_byte = mem_read(cpu->reg.registers[PC]++);
-    uint8_t nn_byte = mem_read(cpu->reg.registers[PC]++);
+    uint16_t n_byte = mem_read(get_inc_pc(cpu));
+    uint8_t nn_byte = mem_read(get_inc_pc(cpu));
     uint16_t addr = (n_byte << 8) | nn_byte;
-    mem_write16(addr, cpu->reg.registers[PC]);
+    mem_write16(addr, reg16_toi(cpu->reg.registers[SP]));
     
     return 5;
 }
 
 int op_ld_sp_hl(cpu_state_t *cpu)
 {
-    cpu->reg.registers[SP] = cpu->reg.registers[HL];
+    reg_write16(reg16_toi(cpu->reg.registers[HL]), SP, &cpu->reg);
     return 2;
+}
+
+static int map_rri_p(uint8_t irr)
+{
+    switch (irr) {
+        case 0:
+            return BC;
+        case 1:
+            return DE;
+        case 2:
+            return HL;
+        case 3:
+            return AF;
+        default:
+            fprintf(stderr, "<ERROR> Invalid RR selection (bug)...\n");
+            exit(1);
+    }
 }
 
 int op_push_rr(cpu_state_t *cpu)
 {
-    cpu->reg.registers[SP] -= 2;
-    uint8_t ir = (cpu->x_insbits >> 4) & 0x3u;
-    uint16_t wval = cpu->reg.registers[ir];
-    if (ir == 3) {
-        uint16_t lo = wval & 0xffu;
-        wval = (wval >> 8) | (lo << 8);
-    }
-    mem_write16(cpu->reg.registers[SP], wval);
+    reg_write16(reg16_toi(cpu->reg.registers[SP]) - 2, SP, &cpu->reg);
+    uint8_t irr = map_rri_p((cpu->x_insbits >> 4) & 0x3u);
+    uint16_t wval = reg16_toi(cpu->reg.registers[irr]);
+    mem_write16(reg16_toi(cpu->reg.registers[SP]), wval);
     
     return 4;
 }
 
 int op_pop_rr(cpu_state_t *cpu)
 {
-    uint8_t ir = (cpu->x_insbits >> 4) & 0x3u;
-    uint16_t rwval = mem_read(cpu->reg.registers[SP]++);
-    if (ir == 3) {
-        uint16_t lo = rwval & 0xffu;
-        rwval = (lo << 8) | (rwval >> 8);
-    }
+    uint8_t irr = map_rri_p((cpu->x_insbits >> 4) & 0x3u);
+    uint16_t rwval = mem_read(reg16_toi(cpu->reg.registers[SP]));
     
-    cpu->reg.registers[ir] = rwval;
+    reg_write16(rwval, irr, &cpu->reg);
+    reg_write16(reg16_toi(cpu->reg.registers[SP]) + 2, SP, &cpu->reg);
     return 3;
 }
 
 /* End: 16-bit memory operations */
 
+/* Begin: 8-bit arithmetic operations */
+
+int op_add_r(cpu_state_t *cpu)
+{
+    uint8_t ir = cpu->x_insbits & 0x07u;
+    cpu->reg.registers[AF].hi = 
+        (uint8_t) alu(ALU_ADD, cpu->reg.registers[AF].hi,
+        *reg8_at(ir, &cpu->reg), &cpu->reg.registers[AF].lo);
+
+    return 1;
+}
+
+int op_add_hl(cpu_state_t *cpu)
+{
+    cpu->reg.registers[AF].hi = 
+        (uint8_t) alu(ALU_ADD, cpu->reg.registers[AF].hi, 
+        mem_read(reg16_toi(cpu->reg.registers[HL])), &cpu->reg.registers[AF].lo);
+
+    return 2;
+}
+
+int op_add_n(cpu_state_t *cpu)
+{
+    uint8_t n = mem_read(get_inc_pc(cpu));
+    cpu->reg.registers[AF].hi =
+        (uint8_t) alu(ALU_ADD, cpu->reg.registers[AF].hi, n,
+        &cpu->reg.registers[AF].lo);
+    return 2;
+}
+
+static bool carry_enable(cpu_state_t *cpu)
+{
+    return (cpu->reg.registers[AF].lo >> 4) & 0x1u;
+}
+
+/* NOTE: As of now carry flag *might* be unreliable */
+int op_adc_r(cpu_state_t *cpu)
+{
+    uint8_t ir = cpu->x_insbits & 0x07u;
+    uint16_t tmp = *reg8_at(ir, &cpu->reg) + carry_enable(cpu);
+    cpu->reg.registers[AF].hi =
+        (uint8_t) alu(ALU_ADD, cpu->reg.registers[AF].hi, tmp,
+        &cpu->reg.registers[AF].lo);
+    return 1;
+}
+
+int op_adc_hl(cpu_state_t *cpu)
+{
+    uint16_t tmp = mem_read(reg16_toi(cpu->reg.registers[HL]))
+    + carry_enable(cpu);
+    cpu->reg.registers[AF].hi = 
+        (uint8_t) alu(ALU_ADD, cpu->reg.registers[AF].hi, tmp,
+        &cpu->reg.registers[AF].lo);
+    return 2;
+}
+
+int op_adc_n(cpu_state_t *cpu)
+{
+    uint8_t n = mem_read(get_inc_pc(cpu));
+    uint16_t tmp = n + carry_enable(cpu);
+    REGS(AF).hi =
+        (uint8_t) alu(ALU_ADD, cpu->reg.registers[AF].hi, tmp,
+        &cpu->reg.registers[AF].lo);
+    return 2;
+}
+
+int op_sub_r(cpu_state_t *cpu)
+{
+    uint8_t ir = cpu->x_insbits & 0x07u;
+    uint16_t src2 = *reg8_at(ir, &cpu->reg);
+    REGS(AF).hi =
+        (uint8_t) alu(ALU_SUB, REGS(AF).hi, src2, &REGS(AF).lo);
+    return 1;
+}
+
+int op_sub_hl(cpu_state_t *cpu)
+{
+    uint16_t src2 = mem_read(reg16_toi(REGS(HL)));
+    REGS(AF).hi =
+        (uint8_t) alu(ALU_SUB, REGS(AF).hi, src2, &REGS(AF).lo);
+    return 2;
+}
+
+int op_sub_n(cpu_state_t *cpu)
+{
+    uint8_t n = mem_read(get_inc_pc(cpu));
+    REGS(AF).hi =
+        (uint8_t) alu(ALU_SUB, REGS(AF).hi, n, &REGS(AF).lo);
+    return 2;
+}
+
+int op_sbc_r(cpu_state_t *cpu)
+{
+    uint8_t ir = cpu->x_insbits & 0x07u;
+    uint16_t src2 = *reg8_at(ir, &cpu->reg) + carry_enable(cpu);
+    REGS(AF).hi =
+        (uint8_t) alu(ALU_SUB, REGS(AF).hi, src2, &REGS(AF).lo);
+    return 1;
+}
+
+int op_sbc_hl(cpu_state_t *cpu)
+{
+    uint16_t src2 = mem_read(reg16_toi(REGS(HL))) + carry_enable(cpu);
+    REGS(AF).hi =
+        (uint8_t) alu(ALU_SUB, REGS(AF).hi, src2, &REGS(AF).lo);
+    return 2;
+}
+
+int op_sbc_n(cpu_state_t *cpu)
+{
+    uint8_t n = mem_read(get_inc_pc(cpu));
+    uint16_t src2 = n + carry_enable(cpu);
+    REGS(AF).hi =
+        (uint8_t) alu(ALU_SUB, REGS(AF).hi, src2, &REGS(AF).lo);
+    return 2;
+}
+
+int op_cp_r(cpu_state_t *cpu)
+{
+    uint8_t ir = cpu->x_insbits & 0x07u;
+    uint16_t src2 = *reg8_at(ir, &cpu->reg);
+    alu(ALU_SUB, REGS(AF).hi, src2, &REGS(AF).lo);
+    return 1;
+}
+
+int op_cp_hl(cpu_state_t *cpu)
+{
+    uint16_t src2 = mem_read(reg16_toi(REGS(HL)));
+    alu(ALU_SUB, REGS(AF).hi, src2, &REGS(AF).lo);
+    return 2;
+}
+
+int op_cp_n(cpu_state_t *cpu)
+{
+    uint8_t n = mem_read(get_inc_pc(cpu));
+    alu(ALU_SUB, REGS(AF).hi, n, &REGS(AF).lo);
+    return 2;
+}
+
+int op_inc_r(cpu_state_t *cpu)
+{
+    int ir = (cpu->x_insbits >> 3) & 0x07u;
+    uint8_t oldc = REGS(AF).lo & 0x10u;
+    *reg8_at(ir, &cpu->reg) =
+        (uint8_t) alu(ALU_ADD, *reg8_at(ir, &cpu->reg), 1, &REGS(AF).lo);
+    REGS(AF).lo = (REGS(AF).lo & 0xefu) | oldc;
+    return 1;
+}
+
+int op_and_r(cpu_state_t *cpu)
+{
+    uint8_t ir = cpu->x_insbits & 0x07u;
+    uint16_t src2 = *reg8_at(ir, &cpu->reg);
+    REGS(AF).hi =
+        (uint8_t) alu(ALU_AND, REGS(AF).hi, src2, &REGS(AF).lo);
+    return 1;
+}
+
+int op_and_hl(cpu_state_t *cpu)
+{
+    uint16_t src2 = mem_read(reg16_toi(REGS(HL))) + carry_enable(cpu);
+    REGS(AF).hi =
+        (uint8_t) alu(ALU_AND, REGS(AF).hi, src2, &REGS(AF).lo);
+    return 2;
+}
+
+int op_and_n(cpu_state_t *cpu)
+{
+    uint8_t n = mem_read(get_inc_pc(cpu));
+    REGS(AF).hi =
+        (uint8_t) alu(ALU_AND, REGS(AF).hi, n, &REGS(AF).lo);
+    return 1;
+}
+
 const int (*op_imp[OP_NUM_OPCODES]) (cpu_state_t *cpu) =
     {
+        op_unimp,
+        op_nop,
+        op_hlt,
 		op_ld_rr,
         op_ld_rn,
         op_ld_rhl,

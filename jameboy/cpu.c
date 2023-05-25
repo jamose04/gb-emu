@@ -10,12 +10,18 @@ cpu_state_t cpu;
 /* SP will be set properly by the boot ROM */
 void init_cpu()
 {
-    cpu.reg.registers[FA] = 0x0;
-    cpu.reg.registers[BC] = 0x0;
-    cpu.reg.registers[DE] = 0x0;
-    cpu.reg.registers[HL] = 0x0;
-    cpu.reg.registers[SP] = 0x0;
-    cpu.reg.registers[PC] = 0x0;
+    cpu.reg.registers[AF].hi = 0;
+    cpu.reg.registers[BC].hi = 0;
+    cpu.reg.registers[DE].hi = 0;
+    cpu.reg.registers[HL].hi = 0;
+    cpu.reg.registers[SP].hi = 0;
+    cpu.reg.registers[PC].hi = 0;
+    cpu.reg.registers[AF].lo = 0;
+    cpu.reg.registers[BC].lo = 0;
+    cpu.reg.registers[DE].lo = 0;
+    cpu.reg.registers[HL].lo = 0;
+    cpu.reg.registers[SP].lo = 0;
+    cpu.reg.registers[PC].lo = 0;
     cpu.x_op = OP_NOP;
 }
 
@@ -154,7 +160,9 @@ alu_op_t get_alu_op()
 int cpu_fetch()
 {
     // buffer the operation.
-    cpu.x_op = get_op_inc(&cpu.reg.registers[PC], &cpu.x_insbits);
+    uint16_t tmppc = reg16_toi(cpu.reg.registers[PC]);
+    cpu.x_op = get_op_inc(&tmppc, &cpu.x_insbits);
+    reg_write16(tmppc, PC, &cpu.reg);
     return 1;
 }
 

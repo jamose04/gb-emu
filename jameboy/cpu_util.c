@@ -77,7 +77,7 @@ uint16_t alu(alu_op_t alu_op, uint16_t src1, uint16_t src2, uint8_t *f)
             *f = set_flags(res == 0, 0, carry_bits[7], carry_bits[15]);
             return res;
         case ALU_SUB:
-            gen_carry_bits(src1, src2, carry_bits, 1);
+            gen_carry_bits(src1, ~src2, carry_bits, 1);
             res = (src1 - src2) & 0xffu;
             *f = set_flags(res == 0, 1, carry_bits[3], carry_bits[7]);
             return res;

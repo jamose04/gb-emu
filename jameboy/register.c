@@ -3,73 +3,48 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/*** BEGIN DEPRECATED FUNCTIONS ***/
-
-byte_t read_hi(uint16_t reg)
+uint16_t reg16_toi(reg16_t r)
 {
-    return reg >> 8;
+    return ((uint16_t) r.hi) << 8 | r.lo;
 }
 
-byte_t read_lo(uint16_t reg)
+void reg_write16(uint16_t val, reg_sel_t sel, cpu_reg_t *reg)
 {
-    return reg & 0xffu;
+    uint8_t hi = (uint8_t) (val >> 8);
+    uint8_t lo = (uint8_t) (val & 0x00ffu);
+    reg->registers[sel].hi = hi;
+    reg->registers[sel].lo = lo;
 }
 
-/*
- * Write to the hi part of register selected by sel.
- * Note that for SP and PC, all 16-bits must be written, so this and
- * write_lo cannot be used for those.
- */
-void write_hi(cpu_reg_t *cpu_reg, reg_sel_t sel, byte_t val)
+uint8_t *reg8_at(uint8_t i, cpu_reg_t *reg)
 {
-    uint16_t wval = ((uint16_t) val) << 8;
-    cpu_reg->registers[sel] = (cpu_reg->registers[sel] & 0xffu) | wval;
+    switch (i) {
+        case 0:
+            return &reg->registers[BC].hi;
+        case 1:
+            return &reg->registers[BC].lo;
+        case 2:
+            return &reg->registers[DE].hi;
+        case 3:
+            return &reg->registers[DE].lo;
+        case 4:
+            return &reg->registers[HL].hi;
+        case 5:
+            return &reg->registers[HL].lo;
+        case 7:
+            return &reg->registers[AF].hi;
+        default:
+            fprintf(stderr, "<ERROR> Invalid register access...\n");
+            exit(1);
+    }
 }
-
-/*
- * Write to the lo bits of register sel.
- */
-void write_lo(cpu_reg_t *cpu_reg, reg_sel_t sel, byte_t val)
-{
-    uint16_t wval = (uint16_t) val;
-    cpu_reg->registers[sel] = (cpu_reg->registers[sel] & ~0xffu) | wval;
-}
-
-/*** END DEPRECATED FUNCTIONS ***/
-
-/*
- *  NOTE: It is important to realize that for convenience, we have a 16-bit
- * register called FA instead of AF. This means the the 8 hi bits of this
- * register correspont to F, while the lo 8 bits correspond to A. This is
- * reverse of the actual hardware.
- */
-uint8_t reg_read_hi(reg_sel_t sel, const cpu_reg_t *reg)
-{
-	return reg->registers[sel] >> 8;
-}
-
-uint8_t reg_read_lo(reg_sel_t sel, const cpu_reg_t *reg)
-{
-	return reg->registers[sel] & 0xffu;
-}
-
-void reg_write_hi(reg_sel_t sel, uint8_t val, cpu_reg_t *reg)
-{
-	*((uint8_t *) (reg->registers + sel)) = val;
-}
-
-void reg_write_lo(reg_sel_t sel, uint8_t val, cpu_reg_t *reg)
-{
-	*((uint8_t *) (reg->registers + sel) + 1) = val;
-}
-
 /*
  * Print registers for debugging info.
  */
 void print_registers(const cpu_reg_t *cpu_reg)
 {
     printf("REGISTER STATE:\n");
-    printf("FA: %x\n", cpu_reg->registers[FA]);
+    printf("AF: %x\n", cpu_reg->registers[AF]);
     printf("BC: %x\n", cpu_reg->registers[BC]);
     printf("DE: %x\n", cpu_reg->registers[DE]);
     printf("HL: %x\n", cpu_reg->registers[HL]);

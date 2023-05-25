@@ -5,40 +5,31 @@
 
 #include "types.h"
 
+typedef struct Reg16 {
+    uint8_t hi;
+    uint8_t lo;
+} reg16_t;
+
 typedef struct Reg {
-    uint16_t registers[6];
+    reg16_t registers[6];
 } cpu_reg_t;
 
 typedef enum Reg_sel {
+    AF,
     BC,
     DE,
     HL,
-    FA, // really AF, but I want A to be stored after F in the register array
     SP,
     PC,
 } reg_sel_t;
 
 /* We can read from any of the registers */
 
-/* BEGIN DEPRECATED FUNCTIONS */
+uint8_t *reg8_at(uint8_t i, cpu_reg_t *reg);
 
-byte_t read_hi(uint16_t reg);
+uint16_t reg16_toi(reg16_t r);
 
-byte_t read_lo(uint16_t reg);
-
-void write_hi(cpu_reg_t *cpu_reg, reg_sel_t sel, byte_t val);
-
-void write_lo(cpu_reg_t *cpu_reg, reg_sel_t sel, byte_t val);
-
-/* END DEPRECATED FUNCTIONS */
-
-uint8_t reg_read_hi(reg_sel_t sel, const cpu_reg_t *reg);
-
-uint8_t reg_read_lo(reg_sel_t sel, const cpu_reg_t *reg);
-
-void reg_write_hi(reg_sel_t sel, uint8_t val, cpu_reg_t *reg);
-
-void reg_write_lo(reg_sel_t sel, uint8_t val, cpu_reg_t *reg);
+void reg_write16(uint16_t val, reg_sel_t sel, cpu_reg_t *reg);
 
 // for debug
 void print_registers(const cpu_reg_t *cpu_reg);

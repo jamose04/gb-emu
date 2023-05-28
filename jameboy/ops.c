@@ -4,8 +4,11 @@
 #include "memory.h"
 
 #include <stdlib.h>
+#include <assert.h>
 
 #define REGS(RR) cpu->reg.registers[RR]
+
+#define IREG(RR) reg16_toi(REGS(RR))
 
 //extern cpu_state_t cpu;
 // Maybe use this later
@@ -275,32 +278,51 @@ int op_pop_rr(cpu_state_t *cpu)
 
 /* Begin: 8-bit arithmetic operations */
 
-int op_add_r(cpu_state_t *cpu)
+static uint8_t get_rindex(uint8_t insbits, int start)
 {
-    uint8_t ir = cpu->x_insbits & 0x07u;
-    cpu->reg.registers[AF].hi = 
-        (uint8_t) alu(ALU_ADD, cpu->reg.registers[AF].hi,
-        *reg8_at(ir, &cpu->reg), &cpu->reg.registers[AF].lo);
+    return (insbits >> start) & 0x07u;
+}
+
+static int arith_r(cpu_state_t *cpu, alu_op_t alu_op)
+{
+    uint8_t ir = get_rindex(cpu->x_insbits, 0);
+    REGS(AF).hi =
+        (uint8_t) alu(alu_op, REGS(AF).hi, *reg8_at(ir, &cpu->reg), &REGS(AF).lo);
 
     return 1;
 }
 
+static int arith_hl(cpu_state_t *cpu, alu_op_t alu_op)
+{
+    uint8_t src2 = mem_read(IREG(HL));
+    REGS(AF).hi =
+        (uint8_t) alu(alu_op, REGS(AF).hi, src2, &REGS(AF).lo);
+    
+    return 2;
+}
+
+static int arith_n(cpu_state_t *cpu, alu_op_t alu_op)
+{
+    uint8_t n = mem_read(get_inc_pc(cpu));
+    REGS(AF).hi =
+        (uint8_t) alu(alu_op, REGS(AF).hi, n, &REGS(AF).lo);
+    
+    return 2;
+}
+
+int op_add_r(cpu_state_t *cpu)
+{
+    return arith_r(cpu, ALU_ADD);
+}
+
 int op_add_hl(cpu_state_t *cpu)
 {
-    cpu->reg.registers[AF].hi = 
-        (uint8_t) alu(ALU_ADD, cpu->reg.registers[AF].hi, 
-        mem_read(reg16_toi(cpu->reg.registers[HL])), &cpu->reg.registers[AF].lo);
-
-    return 2;
+    return arith_hl(cpu, ALU_ADD);
 }
 
 int op_add_n(cpu_state_t *cpu)
 {
-    uint8_t n = mem_read(get_inc_pc(cpu));
-    cpu->reg.registers[AF].hi =
-        (uint8_t) alu(ALU_ADD, cpu->reg.registers[AF].hi, n,
-        &cpu->reg.registers[AF].lo);
-    return 2;
+    return arith_n(cpu, ALU_ADD);
 }
 
 static bool carry_enable(cpu_state_t *cpu)
@@ -341,27 +363,17 @@ int op_adc_n(cpu_state_t *cpu)
 
 int op_sub_r(cpu_state_t *cpu)
 {
-    uint8_t ir = cpu->x_insbits & 0x07u;
-    uint16_t src2 = *reg8_at(ir, &cpu->reg);
-    REGS(AF).hi =
-        (uint8_t) alu(ALU_SUB, REGS(AF).hi, src2, &REGS(AF).lo);
-    return 1;
+    return arith_r(cpu, ALU_SUB);
 }
 
 int op_sub_hl(cpu_state_t *cpu)
 {
-    uint16_t src2 = mem_read(reg16_toi(REGS(HL)));
-    REGS(AF).hi =
-        (uint8_t) alu(ALU_SUB, REGS(AF).hi, src2, &REGS(AF).lo);
-    return 2;
+    return arith_hl(cpu, ALU_SUB);
 }
 
 int op_sub_n(cpu_state_t *cpu)
 {
-    uint8_t n = mem_read(get_inc_pc(cpu));
-    REGS(AF).hi =
-        (uint8_t) alu(ALU_SUB, REGS(AF).hi, n, &REGS(AF).lo);
-    return 2;
+    return arith_n(cpu, ALU_SUB);
 }
 
 int op_sbc_r(cpu_state_t *cpu)
@@ -412,14 +424,47 @@ int op_cp_n(cpu_state_t *cpu)
     return 2;
 }
 
-int op_inc_r(cpu_state_t *cpu)
+static int incdec_r(cpu_state_t *cpu, alu_op_t alu_op)
 {
+    assert(alu_op == ALU_ADD || alu_op == ALU_SUB);
     int ir = (cpu->x_insbits >> 3) & 0x07u;
     uint8_t oldc = REGS(AF).lo & 0x10u;
     *reg8_at(ir, &cpu->reg) =
-        (uint8_t) alu(ALU_ADD, *reg8_at(ir, &cpu->reg), 1, &REGS(AF).lo);
+        (uint8_t) alu(alu_op, *reg8_at(ir, &cpu->reg), 1, &REGS(AF).lo);
     REGS(AF).lo = (REGS(AF).lo & 0xefu) | oldc;
     return 1;
+}
+
+static int incdec_hl(cpu_state_t *cpu, alu_op_t alu_op)
+{
+    assert(alu_op == ALU_ADD || alu_op == ALU_SUB);
+    uint8_t oldc = REGS(AF).lo & 0x10u;
+    uint8_t src1 = mem_read(reg16_toi(REGS(HL)));
+    uint8_t wval =
+        (uint8_t) alu(alu_op, src1, 1, &REGS(AF).lo);
+    mem_write(reg16_toi(REGS(HL)), wval);
+    REGS(AF).lo = (REGS(AF).lo & 0xefu) | oldc;
+    return 3;
+}
+
+int op_inc_r(cpu_state_t *cpu)
+{
+    return incdec_r(cpu, ALU_ADD);
+}
+
+int op_inc_hl(cpu_state_t *cpu)
+{
+    return incdec_hl(cpu, ALU_ADD);
+}
+
+int op_dec_r(cpu_state_t *cpu)
+{
+    return incdec_r(cpu, ALU_SUB);
+}
+
+int op_dec_hl(cpu_state_t *cpu)
+{
+    return incdec_hl(cpu, ALU_SUB);
 }
 
 int op_and_r(cpu_state_t *cpu)
@@ -445,6 +490,11 @@ int op_and_n(cpu_state_t *cpu)
     REGS(AF).hi =
         (uint8_t) alu(ALU_AND, REGS(AF).hi, n, &REGS(AF).lo);
     return 1;
+}
+
+int op_or_r(cpu_state_t *cpu)
+{
+
 }
 
 const int (*op_imp[OP_NUM_OPCODES]) (cpu_state_t *cpu) =

@@ -469,32 +469,82 @@ int op_dec_hl(cpu_state_t *cpu)
 
 int op_and_r(cpu_state_t *cpu)
 {
-    uint8_t ir = cpu->x_insbits & 0x07u;
-    uint16_t src2 = *reg8_at(ir, &cpu->reg);
-    REGS(AF).hi =
-        (uint8_t) alu(ALU_AND, REGS(AF).hi, src2, &REGS(AF).lo);
-    return 1;
+    return arith_r(cpu, ALU_AND);
 }
 
 int op_and_hl(cpu_state_t *cpu)
 {
-    uint16_t src2 = mem_read(reg16_toi(REGS(HL))) + carry_enable(cpu);
-    REGS(AF).hi =
-        (uint8_t) alu(ALU_AND, REGS(AF).hi, src2, &REGS(AF).lo);
-    return 2;
+    return arith_hl(cpu, ALU_AND);
 }
 
 int op_and_n(cpu_state_t *cpu)
 {
-    uint8_t n = mem_read(get_inc_pc(cpu));
-    REGS(AF).hi =
-        (uint8_t) alu(ALU_AND, REGS(AF).hi, n, &REGS(AF).lo);
-    return 1;
+    return arith_n(cpu, ALU_AND);
 }
 
 int op_or_r(cpu_state_t *cpu)
 {
+    return arith_r(cpu, ALU_OR);
+}
 
+int op_or_hl(cpu_state_t *cpu)
+{
+    return arith_hl(cpu, ALU_OR);
+}
+
+int op_or_n(cpu_state_t *cpu)
+{
+    return arith_n(cpu, ALU_OR);
+}
+
+int op_xor_r(cpu_state_t *cpu)
+{
+    return arith_r(cpu, ALU_XOR);
+}
+
+int op_xor_hl(cpu_state_t *cpu)
+{
+    return arith_hl(cpu, ALU_XOR);
+}
+
+int op_xor_n(cpu_state_t *cpu)
+{
+    return arith_n(cpu, ALU_XOR);
+}
+
+int op_ccf(cpu_state_t *cpu)
+{
+    uint8_t oldf = REGS(AF).lo;
+    REGS(AF).lo = (((REGS(AF).lo ^ 0x10u) & 0x10u) | (oldf & 0xefu)) & 0x90u;
+    return 1;
+}
+
+int op_scf(cpu_state_t *cpu)
+{
+    REGS(AF).lo = (REGS(AF).lo | 0x10u) & 0x90u;
+    return 1;
+}
+
+int op_daa(cpu_state_t *cpu)
+{
+    return 1;
+}
+
+int op_cpl(cpu_state_t *cpu)
+{
+    REGS(AF).hi = REGS(AF).hi ^ 0xffu;
+    REGS(AF).lo |= 0x60u;
+    return 1;
+}
+
+/* Begin 16-bit cpu ops */
+
+int op_add_hl_rr(cpu_state_t *cpu)
+{
+    int rri = map_rri((cpu->x_insbits >> 4) & 0x3u);
+    reg_write16(alu(ALU_ADD16, IREG(HL), IREG(rri), &REGS(AF).lo),
+        HL, &cpu->reg);
+    return 2;
 }
 
 const int (*op_imp[OP_NUM_OPCODES]) (cpu_state_t *cpu) =
@@ -526,4 +576,36 @@ const int (*op_imp[OP_NUM_OPCODES]) (cpu_state_t *cpu) =
         op_ld_sp_hl,
         op_push_rr,
         op_pop_rr,
+        op_add_r,
+        op_add_hl,
+        op_add_n,
+        op_adc_r,
+        op_adc_hl,
+        op_adc_n,
+        op_sub_r,
+        op_sub_hl,
+        op_sub_n,
+        op_sbc_r,
+        op_sbc_hl,
+        op_sbc_n,
+        op_cp_r,
+        op_cp_hl,
+        op_cp_n,
+        op_inc_r,
+        op_inc_hl,
+        op_dec_r,
+        op_dec_hl,
+        op_and_r,
+        op_and_hl,
+        op_and_n,
+        op_or_r,
+        op_or_hl,
+        op_or_n,
+        op_xor_r,
+        op_xor_hl,
+        op_xor_n,
+        op_ccf,
+        op_scf,
+        op_daa,
+        op_cpl,
     };

@@ -124,6 +124,10 @@ uint16_t alu(alu_op_t alu_op, uint16_t src1, uint16_t src2, uint8_t *f)
             res = (src1 >> 1) & 0xffu;
             *f = set_flags(res == 0, 0, 0, lsb == 1);
             return res;
+        case ALU_SWAP:
+            res = ((uint8_t) src1 << 4) | ((uint8_t) src1 >> 4);
+            *f = set_flags(res == 0, 0, 0, 0);
+            return res;
     }
 }
 

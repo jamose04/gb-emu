@@ -537,7 +537,7 @@ int op_cpl(cpu_state_t *cpu)
     return 1;
 }
 
-/* Begin 16-bit cpu ops */
+/* Begin 16-bit arithmetic/logic ops */
 
 int op_add_hl_rr(cpu_state_t *cpu)
 {
@@ -545,6 +545,165 @@ int op_add_hl_rr(cpu_state_t *cpu)
     reg_write16(alu(ALU_ADD16, IREG(HL), IREG(rri), &REGS(AF).lo),
         HL, &cpu->reg);
     return 2;
+}
+
+int op_inc_rr(cpu_state_t *cpu)
+{
+    int rri = map_rri((cpu->x_insbits >> 4) & 0x3u);
+    reg_write16(IREG(rri) + 1, rri, &cpu->reg);
+    return 2;
+}
+
+int op_dec_rr(cpu_state_t *cpu)
+{
+    int rri = map_rri((cpu->x_insbits >> 4) & 0x3u);
+    reg_write16(IREG(rri) - 1, rri, &cpu->reg);
+    return 2;
+}
+
+int op_add_sp_nn(cpu_state_t *cpu)
+{
+    int8_t n = get_inc_pc(cpu);
+    reg_write16(IREG(SP) + (int16_t) n, SP, &cpu->reg);
+    return 4;
+}
+
+int op_ld_hl_sp_nn(cpu_state_t *cpu)
+{
+    int8_t n = get_inc_pc(cpu);
+    reg_write16(IREG(SP) + (int16_t) n, HL, &cpu->reg);
+    return 3;
+}
+
+/* End 16-bit arithmetic/logic ops */
+
+/* Begin rotate and shift ops */
+
+static int rotate_op(cpu_state_t *cpu, alu_op_t alu_op, uint8_t *reg)
+{
+    assert(alu_op == ALU_RL
+        || alu_op == ALU_RL_CARRY
+        || alu_op == ALU_RR
+        || alu_op == ALU_RR_CARRY);
+
+    *reg = (uint8_t) alu(alu_op, *reg, 0, &REGS(AF).lo);
+
+    return 1;
+}
+
+int op_rlca(cpu_state_t *cpu)
+{
+    return rotate_op(cpu, ALU_RL, &REGS(AF).hi);
+}
+
+int op_rla(cpu_state_t *cpu)
+{
+    return rotate_op(cpu, ALU_RL_CARRY, &REGS(AF).hi);
+}
+
+int op_rrca(cpu_state_t *cpu)
+{
+    return rotate_op(cpu, ALU_RR, &REGS(AF).hi);
+}
+
+int op_rra(cpu_state_t *cpu)
+{
+    return rotate_op(cpu, ALU_RR_CARRY, &REGS(AF).hi);
+}
+
+static int sr_r(cpu_state_t *cpu, alu_op_t alu_op)
+{
+    assert(alu_op == ALU_RL
+        || alu_op == ALU_RR
+        || alu_op == ALU_RL_CARRY
+        || alu_op == ALU_RR_CARRY
+        || alu_op == ALU_SL
+        || alu_op == ALU_SRA
+        || alu_op == ALU_SRL
+        || alu_op == ALU_SWAP);
+
+    uint8_t ri = cpu->x_insbits & 0x7u;
+    *reg8_at(ri, &cpu->reg)
+        = (uint8_t) alu(alu_op, *reg8_at(ri, &cpu->reg), 0, &REGS(AF).lo);
+    return 2;
+}
+
+int op_rlc_r(cpu_state_t *cpu)
+{
+    return sr_r(cpu, ALU_RL);
+}
+
+static int sr_hl(cpu_state_t *cpu, alu_op_t alu_op)
+{
+    assert(alu_op == ALU_RL
+        || alu_op == ALU_RR
+        || alu_op == ALU_RL_CARRY
+        || alu_op == ALU_RR_CARRY
+        || alu_op == ALU_SL
+        || alu_op == ALU_SRA
+        || alu_op == ALU_SRL
+        || alu_op == ALU_SWAP);
+
+    uint8_t src1 = mem_read(IREG(HL));
+    uint8_t val = (uint8_t) alu(alu_op, src1, 0, &REGS(AF).lo);
+    mem_write(IREG(HL), val);
+
+    return 4;
+}
+
+int op_rlc_hl(cpu_state_t *cpu)
+{
+    return sr_hl(cpu, ALU_RL);
+}
+
+int op_rl_r(cpu_state_t *cpu)
+{
+    return sr_r(cpu, ALU_RL_CARRY);
+}
+
+int op_rl_hl(cpu_state_t *cpu)
+{
+    return sr_hl(cpu, ALU_RL_CARRY);
+}
+
+int op_rrc_r(cpu_state_t *cpu)
+{
+    return sr_r(cpu, ALU_RR);
+}
+
+int op_rrc_hl(cpu_state_t *cpu)
+{
+    return sr_hl(cpu, ALU_RR);
+}
+
+int op_rr_r(cpu_state_t *cpu)
+{
+    return sr_r(cpu, ALU_RR_CARRY);
+}
+
+int op_rr_hl(cpu_state_t *cpu)
+{
+    return sr_hl(cpu, ALU_RR_CARRY);
+}
+
+int op_sla_r(cpu_state_t *cpu)
+{
+    return sr_r(cpu, ALU_SL);
+}
+
+int op_sla_hl(cpu_state_t *cpu)
+{
+    return sr_hl(cpu, ALU_SL);
+}
+
+int op_swap_r(cpu_state_t *cpu)
+{
+    return sr_r(cpu, ALU_SWAP);
+}
+
+int op_swap_hl(cpu_state_t *cpu)
+{
+    return sr_hl(cpu, ALU_SWAP);
 }
 
 const int (*op_imp[OP_NUM_OPCODES]) (cpu_state_t *cpu) =

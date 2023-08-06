@@ -18,6 +18,8 @@ struct {
     uint8_t tac;
 } timer_div_regs;
 
+uint8_t lcdc;
+
 /*
  * Initialize iomem.
  * Set the boot rom to enable
@@ -97,6 +99,9 @@ void iomem_write(uint16_t addr, uint8_t val)
             break;
         case 0xff07:
             timer_div_regs.tac = val;
+            break;
+        case 0xff40:
+            lcdc = val;
             break;
         case 0xff50u:
             iomem_stat.gbboot_enable = (val == 0);

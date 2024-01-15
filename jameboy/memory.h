@@ -10,6 +10,7 @@
 #include <stdint.h>
 
 #define IMEM_SIZE 0x8000
+#define OAM_SIZE 0xa0
 
 #define GBBOOT_SIZE 0x100
 

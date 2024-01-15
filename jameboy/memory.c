@@ -2,9 +2,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-uint8_t *imem;
-uint8_t *bootrom;
+static uint8_t *imem;
+static uint8_t *bootrom;
+
+static uint8_t *oam;
 
 typedef enum Addrspace {
     ASPACE_ROM00,
@@ -39,6 +42,9 @@ bool mem_init(FILE *gbboot, FILE *rom)
     i = 0;
     while (fread(&bootrom[i++], 1, 1, gbboot))
         ;
+
+    // init oam
+    oam = malloc(sizeof(uint8_t) * OAM_SIZE);
 
 	if (!iomem_init()) {
 		return false;
@@ -123,6 +129,10 @@ uint8_t mem_read(uint16_t addr)
         case ASPACE_HRAM:
 			return hram_read(addr);
 		case ASPACE_WRAM:
+            if (iomem_dma_dots() == -1) {
+                fprintf(stderr, "<WARNING> read during dma... exit\n");
+                exit(1);
+            }
 			return wram_read(addr);
 		case ASPACE_VRAM:
 			return vram_read(addr);
@@ -150,6 +160,11 @@ static void write(uint16_t addr, uint16_t val, bool w16)
                 hram_write(addr, (uint8_t) (val & 0xffu));
             break;
 		case ASPACE_WRAM:
+            if (iomem_dma_dots() == -1) {
+                fprintf(stderr, "<WARNING> writing to wram during dma"
+                    "transfer. It will be ignored...\n");
+                return;
+            }
             if (w16)
                 wram_write16(addr, val);
             else
@@ -176,4 +191,32 @@ void mem_write(uint16_t addr, uint8_t val)
 void mem_write16(uint16_t addr, uint16_t val)
 {
     write(addr, val, true);
+}
+
+/* update after "dots" cycles */
+void mem_update(uint8_t dots)
+{
+    //things we need to do:
+    /*
+     * 1. continue dma transfer if it is active
+     *    (copy dots bytes from rom (dma_addr) to oam)
+     * 2. ???
+     */
+    int16_t dr = iomem_dma_dots();
+    uint16_t src_idx = iomem_dma_addr() + (0xa0 - dr);
+    // NOTE: change this later ?? or maybe not!
+    if (src_idx >= 0xdf9f) {
+        fprintf(stderr, "<ERROR> bad dma src addr... %x\n", src_idx);
+        exit(1);
+    }
+
+    if (dr != -1) {
+        // dma transfer is active
+        if (dots > dr) {
+            //transfer dr bytes
+            memcpy(oam, (imem + src_idx), dr);
+        } else {
+            memcpy(oam, (imem + src_idx), dots);
+        }
+    }
 }

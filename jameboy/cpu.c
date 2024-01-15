@@ -7,6 +7,8 @@
 
 cpu_state_t cpu;
 
+extern const int (*op_imp[OP_NUM_OPCODES]) (cpu_state_t *cpu);
+
 /* SP will be set properly by the boot ROM */
 void init_cpu()
 {
@@ -156,7 +158,10 @@ alu_op_t get_alu_op()
 	}
 }
 
+// what the absolute fuck is even happening
+
 // return number of machine cycles (1 for fetch)
+// ARE WE INCRMEMPNT PC????? yes but this is stupid
 int cpu_fetch()
 {
     // buffer the operation.
@@ -169,11 +174,15 @@ int cpu_fetch()
 // returns number of machine cycles.
 int cpu_execute()
 {
-    return 1;
+    return op_imp[cpu.x_op](&cpu);
 }
 
-void step_cpu()
+int step_cpu()
 {
+    // make sure that fetch is called once before this starts, okay?
     int cx = cpu_execute();
     int cf = cpu_fetch();
+    // overlapping so we should only care about cx i guess?
+    // seems correct.
+    return cx;
 }

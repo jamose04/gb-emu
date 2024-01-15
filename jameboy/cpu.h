@@ -14,4 +14,10 @@ void init_cpu();
 
 void print_cpu_state();
 
+int cpu_fetch();
+
+int cpu_execute();
+
+int step_cpu();
+
 #endif

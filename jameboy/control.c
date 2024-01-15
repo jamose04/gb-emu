@@ -27,10 +27,16 @@ void machine_run()
 
 // what is needed:
 /*
- loop (1 per 60th of a second):
-    step_cpu()
-    mem_update() or whatever the hell its called
-    
+loops are based on lcd stuff
+int dotc
+//mode 2
+while dotc < (80 + 12)
+ step cpu
+scan oam and stuff
+
+// mode 3 (draw shit) (also +12 above is mode 3)
+while dotc < (92 + 160)
+
  
  
  */

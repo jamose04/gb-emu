@@ -141,6 +141,8 @@ typedef enum Aluops {
     ALU_SRL,
     ALU_SWAP,
     ALU_BIT,
+    ALU_SET,
+    ALU_RESET,
 } alu_op_t;
 
 typedef enum Reg_access_mode {

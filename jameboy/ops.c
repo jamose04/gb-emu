@@ -726,12 +726,37 @@ int op_srl_hl(cpu_state_t *cpu)
     return sr_hl(cpu, ALU_SRL);
 }
 
-int op_bit_nr(cpu_state_t *cpu)
+static int bitop_nr(cpu_state_t *cpu, alu_op_t alu_op)
 {
     uint8_t bindex = (cpu->x_insbits >> 3) & 0x7u;
     uint8_t rindex = get_rindex(cpu->x_insbits, 0);
-    alu(ALU_BIT, *reg8_at(rindex, &cpu->reg), bindex, &REGS(AF).lo);
+    *reg8_at(rindex, &cpu->reg)
+        = alu(alu_op, *reg8_at(rindex, &cpu->reg), bindex, &REGS(AF).lo);
     return 2;
+}
+
+static int bitop_nhl(cpu_state_t *cpu, alu_op_t alu_op)
+{
+    uint8_t src1 = mem_read(reg16_toi(cpu->reg.registers[HL]));
+    uint8_t bindex = (cpu->x_insbits >> 3) & 0x7u;
+    uint8_t res = alu(alu_op, src1, bindex, &REGS(AF).lo);
+    mem_write(reg16_toi(cpu->reg.registers[HL]), res);
+    return 3;
+}
+
+int op_bit_nr(cpu_state_t *cpu)
+{
+    return bitop_nr(cpu, ALU_BIT);
+}
+
+int op_bit_nhl(cpu_state_t *cpu)
+{
+    return bitop_nhl(cpu, ALU_BIT);
+}
+
+int op_set_nr(cpu_state_t *cpu)
+{
+
 }
 
 const int (*op_imp[OP_NUM_OPCODES]) (cpu_state_t *cpu) =

@@ -132,7 +132,15 @@ uint16_t alu(alu_op_t alu_op, uint16_t src1, uint16_t src2, uint8_t *f)
             // return val is useless. src1 is n
             
             *f = set_flags((src1 >> src2) & 0x1u, 0, 1, *f & 0x1u);
-            return 0;
+            return src1;
+        case ALU_SET:
+            res = (1 << src2) | src1;
+            // DO NOT FUCK WITH THE FLAGS
+            return res;
+        case ALU_RESET:
+            res = ~(1 << src2) & src1;
+            // DO NOT FUCK WITH THE FLAGS
+            return res;
     }
 }
 

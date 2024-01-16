@@ -219,4 +219,6 @@ void mem_update(uint8_t dots)
             memcpy(oam, (imem + src_idx), dots);
         }
     }
+
+    iomem_update();
 }

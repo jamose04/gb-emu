@@ -25,6 +25,22 @@ static int16_t dma_dots;
 // specifies src address in rom.
 static uint16_t dma_addr;
 
+static uint8_t scx;
+static uint8_t scy;
+
+static uint8_t wx;
+static uint8_t wy;
+
+static bool enable;
+static bool disable;
+// interrupt enable master flag
+static bool ime;
+
+//0xffff consider organizeing bettr
+static uint8_t ie;
+
+static uint8_t rif;
+
 /*
  * Initialize iomem.
  * Set the boot rom to enable
@@ -39,6 +55,16 @@ bool iomem_init()
     timer_div_regs.tima = 0;
     timer_div_regs.tma = 0;
     timer_div_regs.tac = 0;
+
+    scx = 0; // change later ? NOTE
+    scy = 0;
+
+    wx = 0;
+    wy = 0;
+
+    ime = false;
+    enable = false;
+
     dma_dots = -1;
     return true;
 }
@@ -61,6 +87,18 @@ uint8_t iomem_read(uint16_t addr)
             return timer_div_regs.tma;
         case 0xff07:
             return timer_div_regs.tac;
+        case 0xff42:
+            return scy;
+        case 0xff43:
+            return scx;
+        case 0xff4a:
+            return wy;
+        case 0xff4b:
+            return wx;
+        case 0xff0f:
+            return rif & 0x1f;
+        case 0xffff:
+            return ie & 0x1f;
         default:
             break;
     }
@@ -109,12 +147,30 @@ void iomem_write(uint16_t addr, uint8_t val)
         case 0xff40:
             lcdc = val;
             break;
+        case 0xff42:
+            scy = val;
+            break;
+        case 0xff43:
+            scx = val;
+            break;
         case 0xff46:
             // dma transfer
             dma_dots = 160;
             break;
+        case 0xff4a:
+            wy = val;
+            break;
+        case 0xff4b:
+            wx = val;
+            break;
         case 0xff50u:
             iomem_stat.gbboot_enable = (val == 0);
+            break;
+        case 0xff0fu:
+            rif = (val & 0x1fu);
+            break;
+        case 0xffffu:
+            ie = (val & 0x1fu);
             break;
         default:
             break;
@@ -175,4 +231,27 @@ uint16_t iomem_dma_addr()
 bool iomem_gbboot_enable()
 {
     return iomem_stat.gbboot_enable;
+}
+
+void iomem_ei()
+{
+    if (disable)
+        disable = false;
+    enable = true;
+}
+
+void iomem_di()
+{
+    if (enable)
+        enable = false;
+    disable = true;
+}
+
+void iomem_update()
+{
+    // should not both be true;
+    if (enable)
+        ime = true;
+    else if (disable)
+        ime = false;
 }

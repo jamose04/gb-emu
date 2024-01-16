@@ -30,13 +30,16 @@ void machine_run()
 loops are based on lcd stuff
 int dotc
 //mode 2
-while dotc < (80 + 12)
+while dotc < (80)
+ step cpu
+
+mode 3 !
+while dotc < 80 + 12
  step cpu
 scan oam and stuff
 
-// mode 3 (draw shit) (also +12 above is mode 3)
+// mode 3 still (draw shit) (also +12 above is mode 3)
 while dotc < (92 + 160)
 
- 
- 
+
  */

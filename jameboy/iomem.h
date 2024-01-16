@@ -26,4 +26,10 @@ uint16_t iomem_dma_addr();
 /* Determine whether the boot rom is enabled */
 bool iomem_gbboot_enable();
 
+void iomem_ei();
+
+void iomem_di();
+
+void iomem_update();
+
 #endif

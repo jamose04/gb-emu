@@ -706,6 +706,34 @@ int op_swap_hl(cpu_state_t *cpu)
     return sr_hl(cpu, ALU_SWAP);
 }
 
+int op_sra_r(cpu_state_t *cpu)
+{
+    return sr_r(cpu, ALU_SRA);
+}
+
+int op_sra_hl(cpu_state_t *cpu)
+{
+    return sr_hl(cpu, ALU_SRA);
+}
+
+int op_srl_r(cpu_state_t *cpu)
+{
+    return sr_r(cpu, ALU_SRL);
+}
+
+int op_srl_hl(cpu_state_t *cpu)
+{
+    return sr_hl(cpu, ALU_SRL);
+}
+
+int op_bit_nr(cpu_state_t *cpu)
+{
+    uint8_t bindex = (cpu->x_insbits >> 3) & 0x7u;
+    uint8_t rindex = get_rindex(cpu->x_insbits, 0);
+    alu(ALU_BIT, *reg8_at(rindex, &cpu->reg), bindex, &REGS(AF).lo);
+    return 2;
+}
+
 const int (*op_imp[OP_NUM_OPCODES]) (cpu_state_t *cpu) =
     {
         op_unimp,
